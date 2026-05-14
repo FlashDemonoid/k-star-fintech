@@ -190,37 +190,37 @@ Authorization: Bearer <token>
 
 ---
 
-## 🖼️ NFT Endpoints (Protected)
+## 🏅 Bullion Endpoints (Protected)
 
-### Mint NFT
+### Mint Bullion
 ```http
-POST /api/nft/mint
+POST /api/bullion/mint
 Authorization: Bearer <token>
 Content-Type: application/json
 
 {
   "name": "Golden Star #1",
-  "description": "First genesis NFT",
-  "imageUrl": "https://example.com/nft.png",
+  "description": "First gold holding",
+  "imageUrl": "https://example.com/bullion.png",
   "initialPrice": 0.5
 }
 ```
 
 ### Browse Marketplace
 ```http
-GET /api/nft/marketplace
+GET /api/bullion/marketplace
 Authorization: Bearer <token>
 ```
 
-### Buy NFT
+### Buy Bullion
 ```http
-POST /api/nft/trade/{tokenId}
+POST /api/bullion/trade/{tokenId}
 Authorization: Bearer <token>
 ```
 
-### My NFTs
+### My Holdings
 ```http
-GET /api/nft/my
+GET /api/bullion/my
 Authorization: Bearer <token>
 ```
 

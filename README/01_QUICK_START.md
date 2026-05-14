@@ -107,7 +107,7 @@ sleep 25
 cd user-service    && mvn spring-boot:run  # Terminal 1 — port 8081
 cd exchange-service && mvn spring-boot:run # Terminal 2 — port 8082
 cd transfer-service && mvn spring-boot:run # Terminal 3 — port 8083
-cd nft-service     && mvn spring-boot:run  # Terminal 4 — port 8084
+cd bullion-service     && mvn spring-boot:run  # Terminal 4 — port 8084
 cd nacha-service   && mvn spring-boot:run  # Terminal 5 — port 8085
 cd gateway-service  && mvn spring-boot:run # Terminal 6 — port 8080 (START LAST)
 
@@ -126,7 +126,7 @@ cd FrontEnd && npm install && npm start     # Terminal 7 — port 3000
 | User Service | 8081 | http://localhost:8081 |
 | Exchange Service | 8082 | http://localhost:8082 |
 | Transfer Service | 8083 | http://localhost:8083 |
-| NFT/Bullion | 8084 | http://localhost:8084 |
+| Bullion | 8084 | http://localhost:8084 |
 | NACHA Service | 8085 | http://localhost:8085 |
 
 ---

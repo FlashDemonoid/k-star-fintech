@@ -21,7 +21,7 @@
 | 3 | Real-Time Currency Exchange | exchange-service | open.er-api.com |
 | 4 | UPI P2P Transfer via Kafka | transfer-service | Kafka Events |
 | 5 | NACHA / ACH Bank Payments | nacha-service | PPD/CCD/WEB SEC Codes |
-| 6 | Digital Gold & Silver Trading | nft-service | Live MCX Prices |
+| 6 | Digital Gold & Silver Trading | bullion-service | Live MCX Prices |
 | 7 | Dashboard with Live Charts | Frontend | Recharts |
 | 8 | Add Money (UPI / Bank / Card) | user-service | Wallet Adjust API |
 
@@ -35,7 +35,7 @@
 | Framework | Spring Boot | 3.1.5 | Microservices framework |
 | API Gateway | Spring Cloud Gateway | 4.0.x | Routing + JWT Filter |
 | ORM | Spring Data JPA + Hibernate | 3.1.5 | MySQL ORM |
-| NoSQL | Spring Data MongoDB | 3.1.5 | Exchange rates + NFT |
+| NoSQL | Spring Data MongoDB | 3.1.5 | Exchange rates + Bullion Holdings |
 | Messaging | Apache Kafka | 7.4.0 | Event streaming |
 | Security | Spring Security + jjwt | 0.11.5 | JWT Authentication |
 | Frontend | React | 18 | UI |
@@ -58,7 +58,7 @@ kstar_final/
 │   ├── user-service/          # Auth, wallets, UPI
 │   ├── exchange-service/      # Live currency exchange
 │   ├── transfer-service/      # UPI P2P transfers (Kafka)
-│   ├── nft-service/           # Digital Gold & Silver
+│   ├── bullion-service/           # Digital Gold & Silver
 │   ├── nacha-service/         # NACHA/ACH bank payments
 │   └── docker-compose.yml
 ├── FrontEnd/
@@ -204,7 +204,7 @@ EXIT;
 
 ---
 
-**Step 2 — MongoDB setup (exchange-service & nft-service)**
+**Step 2 — MongoDB setup (exchange-service & bullion-service)**
 
 MongoDB creates databases and collections automatically on first insert — no manual setup needed. But if you want to pre-create them:
 
@@ -218,9 +218,9 @@ use kstar_exchange
 db.createCollection("exchange_rates")     // live currency rates cache
 db.createCollection("conversion_history") // per-user conversion log
 
-// kstar_nft — used by nft-service
-use kstar_nft
-db.createCollection("nfts")              // gold & silver holdings
+// kstar_bullion — used by bullion-service
+use kstar_bullion
+db.createCollection("bullion_holdings")              // gold & silver holdings
 
 exit
 ```
@@ -245,7 +245,7 @@ mysql -u root -p kstar -e "SHOW TABLES;"
 
 # MongoDB — confirm collections
 mongosh --eval "use kstar_exchange; db.getCollectionNames()"
-mongosh --eval "use kstar_nft; db.getCollectionNames()"
+mongosh --eval "use kstar_bullion; db.getCollectionNames()"
 ```
 
 ---
@@ -256,7 +256,7 @@ mongosh --eval "use kstar_nft; db.getCollectionNames()"
 |---|---|---|---|
 | `kstar` | MySQL | `users`, `wallets`, `transactions`, `nacha_payments` | ✅ Yes (Hibernate `ddl-auto: update`) |
 | `kstar_exchange` | MongoDB | `exchange_rates`, `conversion_history` | ✅ Yes (on first insert) |
-| `kstar_nft` | MongoDB | `nfts` | ✅ Yes (on first insert) |
+| `kstar_bullion` | MongoDB | `bullion_holdings` | ✅ Yes (on first insert) |
 
 ### 4. Manual Run
 ```bash
@@ -291,7 +291,7 @@ App runs on: **http://localhost:3000**
 | User Service | 8081 | MySQL |
 | Exchange Service | 8082 | MongoDB |
 | Transfer Service | 8083 | MySQL |
-| NFT/Bullion Service | 8084 | MongoDB |
+| Bullion Service | 8084 | MongoDB |
 | NACHA Service | 8085 | MySQL |
 | MySQL | 3306 | — |
 | MongoDB | 27017 | — |
@@ -337,8 +337,8 @@ GET  /api/nacha/payments                  # Payment history
 
 ### Gold/Silver (Bullion)
 ```bash
-POST /api/nft/mint                        # Buy gold/silver
-GET  /api/nft/my                          # My holdings
+POST /api/bullion/mint                        # Buy gold/silver
+GET  /api/bullion/my                          # My holdings
 ```
 
 ---

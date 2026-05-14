@@ -48,7 +48,7 @@ elif [ "$MODE" = "local" ]; then
     echo "  Terminal 1: cd $ROOT_DIR/backend/user-service    && mvn spring-boot:run"
     echo "  Terminal 2: cd $ROOT_DIR/backend/exchange-service && mvn spring-boot:run"
     echo "  Terminal 3: cd $ROOT_DIR/backend/transfer-service && mvn spring-boot:run"
-    echo "  Terminal 4: cd $ROOT_DIR/backend/nft-service      && mvn spring-boot:run"
+    echo "  Terminal 4: cd $ROOT_DIR/backend/bullion-service      && mvn spring-boot:run"
     echo "  Terminal 5: cd $ROOT_DIR/backend/nacha-service    && mvn spring-boot:run"
     echo "  Terminal 6: cd $ROOT_DIR/backend/gateway-service  && mvn spring-boot:run"
     echo "  Terminal 7: cd $ROOT_DIR/FrontEnd                 && npm install && npm start"

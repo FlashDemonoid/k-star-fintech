@@ -242,7 +242,7 @@ docker exec -it backend-mongodb-1 mongosh
 
 # Select databases
 use kstar_exchange   # Exchange rates + conversion history
-use kstar_nft        # NFT documents
+use kstar_bullion        # Bullion documents
 ```
 
 ### Exchange Rate Queries
@@ -257,17 +257,17 @@ db.exchange_rates.findOne({ baseCurrency: "USD", targetCurrency: "INR" })
 db.conversion_history.find({ username: "alice" }).sort({ convertedAt: -1 }).limit(10)
 ```
 
-### NFT Queries
+### Bullion Queries
 ```javascript
-// All NFTs for sale
-db.nfts.find({ status: "FOR_SALE" }).pretty()
+// All bullion items for sale
+db.bullion_holdings.find({ status: "FOR_SALE" }).pretty()
 
-// NFTs owned by user
-db.nfts.find({ ownerUsername: "alice" })
+// Bullion owned by user
+db.bullion_holdings.find({ ownerUsername: "alice" })
 
-// Most expensive NFTs
-db.nfts.find({}).sort({ price: -1 }).limit(5)
+// Most expensive bullion
+db.bullion_holdings.find({}).sort({ price: -1 }).limit(5)
 
-// NFT trade history
-db.nfts.findOne({ tokenId: "NFT-20241101-000001" }).tradeHistory
+// Bullion trade history
+db.bullion_holdings.findOne({ tokenId: "BULLION-20241101-000001" }).tradeHistory
 ```

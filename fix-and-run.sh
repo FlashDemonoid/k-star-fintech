@@ -44,13 +44,13 @@ log "Cache cleared"
 
 # Build services with --no-cache
 head "Building Services (8-10 min first time)"
-log "Building: user-service, gateway-service, transfer-service, exchange-service, nft-service..."
+log "Building: user-service, gateway-service, transfer-service, exchange-service, bullion-service..."
 docker compose build --no-cache \
   user-service \
   gateway-service \
   transfer-service \
   exchange-service \
-  nft-service
+  bullion-service
 
 # Start all services
 head "Starting All Services"
@@ -114,7 +114,7 @@ echo -e "  ${CYAN}Gateway API:${NC}      http://localhost:8080"
 echo -e "  ${CYAN}User Service:${NC}     http://localhost:8081"
 echo -e "  ${CYAN}Exchange:${NC}         http://localhost:8082"
 echo -e "  ${CYAN}Transfer:${NC}         http://localhost:8083"
-echo -e "  ${CYAN}Bullion/NFT:${NC}      http://localhost:8084"
+echo -e "  ${CYAN}Bullion/Bullion:${NC}      http://localhost:8084"
 echo -e "  ${CYAN}NACHA:${NC}            http://localhost:8085"
 echo ""
 echo -e "  ${YELLOW}Created by:${NC} Kartikeya Shriwas"

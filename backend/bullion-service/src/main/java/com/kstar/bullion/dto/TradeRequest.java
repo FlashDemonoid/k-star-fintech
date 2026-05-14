@@ -1,4 +1,4 @@
-package com.kstar.nft.dto;
+package com.kstar.bullion.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

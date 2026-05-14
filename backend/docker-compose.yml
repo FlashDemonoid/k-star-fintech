@@ -54,8 +54,8 @@ services:
     depends_on: {mysql: {condition: service_healthy}}
     environment: {SPRING_PROFILES_ACTIVE: docker}
     networks: [kstar-network]
-  nft-service:
-    build: ./nft-service
+  bullion-service:
+    build: ./bullion-service
     ports: ["8084:8084"]
     depends_on: [mongodb, kafka]
     environment: {SPRING_PROFILES_ACTIVE: docker}

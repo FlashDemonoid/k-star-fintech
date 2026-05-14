@@ -122,7 +122,7 @@ export default function Login() {
 
                     {/* Feature pills */}
                     <Box sx={{ display:'flex', justifyContent:'center', gap:1, mt:3, flexWrap:'wrap' }}>
-                        {['💱 Exchange','💸 Transfer','🏦 NACHA','🖼️ NFT'].map(f=>(
+                        {['💱 Exchange','💸 Transfer','🏦 NACHA','🏅 Bullion'].map(f=>(
                             <Box key={f} sx={{ px:1.5, py:0.5, borderRadius:10, background:'rgba(255,215,0,0.08)', border:'1px solid rgba(255,215,0,0.15)', color:'#888', fontSize:'0.72rem' }}>
                                 {f}
                             </Box>

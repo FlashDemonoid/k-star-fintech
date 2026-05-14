@@ -1,4 +1,4 @@
-package com.kstar.nft.event;
+package com.kstar.bullion.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,11 +9,12 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class NFTTradeEvent {
+public class BullionTradeEvent {
     private String tokenId;
     private String fromUsername;
     private String toUsername;
     private BigDecimal price;
-    private String eventType; // MINTED, LISTED, TRADED, BURNED
+    private String metal;
+    private String eventType;       // MINTED, TRADED, REDEEMED
     private LocalDateTime timestamp;
 }
