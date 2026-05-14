@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: <service-name>
+  datasource:
+    url: jdbc:mysql://localhost:3306/kstar?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&createDatabaseIfNotExist=true
+    username: <your-db-username>
+    password: <your-db-password>
+  kafka:
+    bootstrap-servers: localhost:9092
+
+server:
+  port: <service-port>
+
+jwt:
+  secret: <your-jwt-secret-key>
+  expiration: 86400000

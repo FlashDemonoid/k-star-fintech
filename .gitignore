@@ -1,0 +1,28 @@
+# Maven
+**/target/
+**/.mvn/
+**/mvnw
+**/mvnw.cmd
+
+# Node
+**/node_modules/
+**/build/
+**/.env.local
+
+# IDE
+**/.idea/
+**/*.iml
+**/.vscode/
+**/.DS_Store
+
+# Logs
+**/*.log
+**/logs/
+
+# Docker volumes
+**/mysql-data/
+**/mongo-data/
+
+# Sensitive config files
+**/application*.yml
+**/application*.properties

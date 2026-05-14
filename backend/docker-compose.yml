@@ -1,0 +1,74 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment: {ZOOKEEPER_CLIENT_PORT: 2181}
+    networks: [kstar-network]
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on: [zookeeper]
+    ports: ["9092:9092"]
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks: [kstar-network]
+  mysql:
+    image: mysql:8.0
+    ports: ["3306:3306"]
+    environment: {MYSQL_ROOT_PASSWORD: root, MYSQL_DATABASE: kstar}
+    volumes: [mysql-data:/var/lib/mysql]
+    networks: [kstar-network]
+    healthcheck:
+      test: ["CMD","mysqladmin","ping","-h","localhost","-u","root","-proot"]
+      interval: 10s
+      retries: 10
+  mongodb:
+    image: mongo:6.0
+    ports: ["27017:27017"]
+    volumes: [mongo-data:/data/db]
+    networks: [kstar-network]
+  gateway-service:
+    build: ./gateway-service
+    ports: ["8080:8080"]
+    depends_on: [kafka, user-service]
+    environment: {SPRING_PROFILES_ACTIVE: docker}
+    networks: [kstar-network]
+  user-service:
+    build: ./user-service
+    ports: ["8081:8081"]
+    depends_on: {mysql: {condition: service_healthy}}
+    environment: {SPRING_PROFILES_ACTIVE: docker}
+    networks: [kstar-network]
+  exchange-service:
+    build: ./exchange-service
+    ports: ["8082:8082"]
+    depends_on: [mongodb, kafka]
+    environment: {SPRING_PROFILES_ACTIVE: docker}
+    networks: [kstar-network]
+  transfer-service:
+    build: ./transfer-service
+    ports: ["8083:8083"]
+    depends_on: {mysql: {condition: service_healthy}}
+    environment: {SPRING_PROFILES_ACTIVE: docker}
+    networks: [kstar-network]
+  nft-service:
+    build: ./nft-service
+    ports: ["8084:8084"]
+    depends_on: [mongodb, kafka]
+    environment: {SPRING_PROFILES_ACTIVE: docker}
+    networks: [kstar-network]
+  nacha-service:
+    build: ./nacha-service
+    ports: ["8085:8085"]
+    depends_on: {mysql: {condition: service_healthy}}
+    environment: {SPRING_PROFILES_ACTIVE: docker}
+    networks: [kstar-network]
+volumes:
+  mysql-data:
+  mongo-data:
+networks:
+  kstar-network:
+    driver: bridge

@@ -1,0 +1,241 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { Grid, Card, CardContent, Typography, Box, Chip } from '@mui/material';
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, PieChart, Pie, Cell, Legend, BarChart, Bar
+} from 'recharts';
+import { AccountBalance, SwapHoriz, TrendingUp, Diamond } from '@mui/icons-material';
+import { useAuth } from '../context/AuthContext';
+import api from '../api/axios';
+
+const CSYM  = { INR:'₹', USD:'$', EUR:'€', GBP:'£', JPY:'¥', GOLD:'g', SILVER:'g' };
+const CCOL  = { INR:'#FFD700', USD:'#00C49F', EUR:'#0088FE', GBP:'#FF8042', JPY:'#a855f7', GOLD:'#FFD700', SILVER:'#C0C0C0' };
+const RATES = { INR:1, USD:84, EUR:90, GBP:107, JPY:0.56, GOLD:6250, SILVER:74 };
+
+const cardSx = { background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:3 };
+const ttSx = { contentStyle:{background:'#1a1a2e',border:'1px solid #333',borderRadius:8}, labelStyle:{color:'#fff'} };
+
+export default function Dashboard() {
+  const { user }  = useAuth();
+  const [wallets, setWallets]   = useState([]);
+  const [histData, setHistData] = useState([]);
+  const [actData, setActData]   = useState([]);
+
+  const loadWallets = useCallback(() => {
+    if (user?.id) {
+      api.get("/users/me").then(r => r.data.wallets ? r.data : {wallets:[]}).catch(() => ({wallets:[]})).then(r => setWallets(r.data||[])).catch(()=>{});
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadWallets();
+    window.addEventListener('walletUpdated', loadWallets);
+    return () => window.removeEventListener('walletUpdated', loadWallets);
+  }, [loadWallets]);
+
+  useEffect(() => {
+    const months = ['Jan','Feb','Mar','Apr','May','Jun'];
+    setHistData(months.map((m,i) => ({
+      date:m,
+      INR:  Math.round(10000 + i*800 + Math.random()*400),
+      USD:  Math.round(i*25 + Math.random()*15),
+      EUR:  Math.round(i*12 + Math.random()*8),
+    })));
+    const activity = ['Aug','Sep','Oct','Nov'].map((m,i) => ({
+      month:m, transfers:Math.round(3+Math.random()*8), exchanges:Math.round(2+Math.random()*7), bullion:Math.round(Math.random()*3)
+    }));
+    setActData(activity);
+  }, []);
+
+  const displayWallets = wallets.length ? wallets : [
+    { currency:'INR', balance:10000, upiId: user?.phone ? user.phone+'@kstar' : '' },
+    { currency:'USD', balance:0 },
+    { currency:'EUR', balance:0 },
+  ];
+
+  const goldW   = wallets.find(w=>w.currency==='GOLD');
+  const silverW = wallets.find(w=>w.currency==='SILVER');
+  const goldGrams   = Number(goldW?.balance   || 0);
+  const silverGrams = Number(silverW?.balance || 0);
+
+  const currencyWallets = displayWallets.filter(w => !['GOLD','SILVER'].includes(w.currency));
+
+  const totalINR = displayWallets.reduce((s,w) =>
+    s + (Number(w.balance)||0) * (RATES[w.currency]||1), 0);
+
+  const pieData = [
+    ...currencyWallets.map(w => ({ name:w.currency, value:Math.max((Number(w.balance)||0)*(RATES[w.currency]||1), 0.01) })),
+    ...(goldGrams   > 0 ? [{ name:'Gold',   value: goldGrams   * 6250 }] : []),
+    ...(silverGrams > 0 ? [{ name:'Silver', value: silverGrams * 74   }] : []),
+  ];
+  const pieColors = ['#FFD700','#00C49F','#0088FE','#FF8042','#a855f7','#FFD700','#C0C0C0'];
+
+  const statCards = [
+    { label:'Total Portfolio',   value:`₹${totalINR.toLocaleString('en-IN',{maximumFractionDigits:0})}`, icon:<AccountBalance/>, color:'#FFD700' },
+    { label:'Wallets',           value: currencyWallets.length,             icon:<TrendingUp/>,  color:'#00C49F' },
+    { label:'Gold Holdings',     value: goldGrams > 0 ? `${goldGrams.toFixed(3)}g`   : '—', icon:<Diamond/>,     color:'#FFD700' },
+    { label:'Silver Holdings',   value: silverGrams > 0 ? `${silverGrams.toFixed(3)}g` : '—', icon:<SwapHoriz/>, color:'#C0C0C0' },
+  ];
+
+  return (
+    <Box>
+      <Box mb={4}>
+        <Typography variant="h4" sx={{fontWeight:800,color:'white'}}>
+          Welcome back, <span style={{color:'#FFD700'}}>{user?.username}</span> 👋
+        </Typography>
+        <Typography variant="body2" sx={{color:'#555',mt:0.5}}>Your complete financial overview</Typography>
+      </Box>
+
+      {/* Stat Cards */}
+      <Grid container spacing={2} mb={4}>
+        {statCards.map(s=>(
+          <Grid item xs={12} sm={6} md={3} key={s.label}>
+            <Card sx={cardSx}>
+              <CardContent>
+                <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
+                  <Typography variant="caption" sx={{color:'#888',textTransform:'uppercase',letterSpacing:1,fontSize:'0.7rem'}}>{s.label}</Typography>
+                  <Box sx={{color:s.color,opacity:0.8}}>{s.icon}</Box>
+                </Box>
+                <Typography variant="h4" sx={{fontWeight:900,color:s.color}}>{s.value}</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* Currency Wallets */}
+      <Typography variant="h6" sx={{color:'white',fontWeight:700,mb:2}}>💳 My Wallets</Typography>
+      <Grid container spacing={2} mb={3}>
+        {currencyWallets.map(w=>{
+          const sym=CSYM[w.currency]||w.currency, col=CCOL[w.currency]||'#aaa';
+          return (
+            <Grid item xs={12} sm={6} md={4} key={w.currency}>
+              <Card sx={{background:`linear-gradient(135deg,${col}0d,${col}05)`,
+                border:`1px solid ${col}33`,borderRadius:3,position:'relative',overflow:'hidden'}}>
+                <Box sx={{position:'absolute',top:-30,right:-30,width:100,height:100,
+                  borderRadius:'50%',background:col,opacity:0.07,filter:'blur(20px)'}}/>
+                <CardContent>
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                    <Chip label={w.currency} size="small" sx={{bgcolor:`${col}22`,color:col,fontWeight:700,border:`1px solid ${col}44`}}/>
+                    <Typography variant="caption" sx={{color:'#555'}}>WALLET</Typography>
+                  </Box>
+                  <Typography variant="h3" sx={{fontWeight:900,color:col,my:1,fontSize:'2rem'}}>
+                    {sym}{Number(w.balance||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
+                  </Typography>
+                  {w.upiId && <Chip label={w.upiId} size="small" sx={{bgcolor:'rgba(255,215,0,0.1)',color:'#FFD700',fontSize:'0.7rem'}}/>}
+                </CardContent>
+              </Card>
+            </Grid>
+          );
+        })}
+      </Grid>
+
+      {/* Bullion Holdings (only if > 0) */}
+      {(goldGrams > 0 || silverGrams > 0) && (
+        <>
+          <Typography variant="h6" sx={{color:'white',fontWeight:700,mb:2}}>🏅 Bullion Holdings</Typography>
+          <Grid container spacing={2} mb={3}>
+            {goldGrams > 0 && (
+              <Grid item xs={12} sm={6} md={4}>
+                <Card sx={{background:'linear-gradient(135deg,rgba(255,215,0,0.08),rgba(255,215,0,0.02))',
+                  border:'1px solid rgba(255,215,0,0.3)',borderRadius:3}}>
+                  <CardContent>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                      <Typography sx={{color:'#FFD700',fontWeight:700}}>🥇 Gold</Typography>
+                      <Chip label="LIVE" size="small" sx={{bgcolor:'rgba(0,196,159,0.15)',color:'#00C49F',fontSize:'0.65rem'}}/>
+                    </Box>
+                    <Typography variant="h4" sx={{color:'#FFD700',fontWeight:900}}>{goldGrams.toFixed(4)}g</Typography>
+                    <Typography sx={{color:'#888',fontSize:'0.85rem'}}>≈ ₹{(goldGrams*6250).toLocaleString('en-IN',{maximumFractionDigits:0})}</Typography>
+                    <Typography variant="caption" sx={{color:'#555'}}>@ ₹6,250/gram</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            )}
+            {silverGrams > 0 && (
+              <Grid item xs={12} sm={6} md={4}>
+                <Card sx={{background:'linear-gradient(135deg,rgba(192,192,192,0.08),rgba(192,192,192,0.02))',
+                  border:'1px solid rgba(192,192,192,0.3)',borderRadius:3}}>
+                  <CardContent>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                      <Typography sx={{color:'#C0C0C0',fontWeight:700}}>🥈 Silver</Typography>
+                      <Chip label="LIVE" size="small" sx={{bgcolor:'rgba(0,196,159,0.15)',color:'#00C49F',fontSize:'0.65rem'}}/>
+                    </Box>
+                    <Typography variant="h4" sx={{color:'#C0C0C0',fontWeight:900}}>{silverGrams.toFixed(4)}g</Typography>
+                    <Typography sx={{color:'#888',fontSize:'0.85rem'}}>≈ ₹{(silverGrams*74).toLocaleString('en-IN',{maximumFractionDigits:0})}</Typography>
+                    <Typography variant="caption" sx={{color:'#555'}}>@ ₹74/gram</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            )}
+          </Grid>
+        </>
+      )}
+
+      {/* Charts */}
+      <Grid container spacing={3} mb={3}>
+        <Grid item xs={12} md={8}>
+          <Card sx={cardSx}>
+            <CardContent>
+              <Typography variant="h6" sx={{color:'white',fontWeight:700,mb:2}}>📈 Balance History</Typography>
+              <ResponsiveContainer width="100%" height={250}>
+                <AreaChart data={histData}>
+                  <defs>
+                    {['INR','USD','EUR'].map(c=>(
+                      <linearGradient key={c} id={`g${c}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%"  stopColor={CCOL[c]} stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor={CCOL[c]} stopOpacity={0}/>
+                      </linearGradient>
+                    ))}
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)"/>
+                  <XAxis dataKey="date" stroke="#555" tick={{fill:'#888',fontSize:12}}/>
+                  <YAxis stroke="#555" tick={{fill:'#888',fontSize:12}}/>
+                  <Tooltip {...ttSx}/>
+                  <Legend wrapperStyle={{color:'#888'}}/>
+                  <Area type="monotone" dataKey="INR" stroke="#FFD700" fill="url(#gINR)" strokeWidth={2}/>
+                  <Area type="monotone" dataKey="USD" stroke="#00C49F" fill="url(#gUSD)" strokeWidth={2}/>
+                  <Area type="monotone" dataKey="EUR" stroke="#0088FE" fill="url(#gEUR)" strokeWidth={2}/>
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Card sx={cardSx}>
+            <CardContent>
+              <Typography variant="h6" sx={{color:'white',fontWeight:700,mb:2}}>🥧 Portfolio Split</Typography>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie data={pieData} cx="50%" cy="50%" outerRadius={90} innerRadius={40}
+                    dataKey="value" label={({name})=>name}>
+                    {pieData.map((_,i)=><Cell key={i} fill={pieColors[i%pieColors.length]}/>)}
+                  </Pie>
+                  <Tooltip contentStyle={{background:'#1a1a2e',border:'1px solid #333',borderRadius:8}}/>
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Activity Bar Chart */}
+      <Card sx={cardSx}>
+        <CardContent>
+          <Typography variant="h6" sx={{color:'white',fontWeight:700,mb:2}}>📊 Monthly Activity</Typography>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={actData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)"/>
+              <XAxis dataKey="month" stroke="#555" tick={{fill:'#888',fontSize:12}}/>
+              <YAxis stroke="#555" tick={{fill:'#888',fontSize:12}}/>
+              <Tooltip {...ttSx}/>
+              <Legend wrapperStyle={{color:'#888'}}/>
+              <Bar dataKey="transfers" fill="#FFD700" radius={[4,4,0,0]} name="Transfers"/>
+              <Bar dataKey="exchanges" fill="#00C49F" radius={[4,4,0,0]} name="Exchanges"/>
+              <Bar dataKey="bullion"   fill="#C0C0C0" radius={[4,4,0,0]} name="Bullion"/>
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    </Box>
+  );
+}
