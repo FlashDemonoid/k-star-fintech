@@ -9,6 +9,7 @@
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)
 ![MongoDB](https://img.shields.io/badge/MongoDB-6.0-green)
 ![Docker](https://img.shields.io/badge/Docker-Compose-blue)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-K8s-326CE5?logo=kubernetes&logoColor=white)
 
 ---
 
@@ -44,7 +45,8 @@
 | HTTP Client | Axios | 1.x | API calls |
 | Database | MySQL | 8.0 | Relational data |
 | Database | MongoDB | 6.0 | Document data |
-| DevOps | Docker + Compose | Latest | Containerization |
+| DevOps | Docker + Compose | Latest | Local containerization |
+| DevOps | Kubernetes | 1.28+ | Production orchestration |
 | Build Tool | Maven | 3.x | Java build |
 
 ---
@@ -61,6 +63,15 @@ kstar_final/
 │   ├── bullion-service/           # Digital Gold & Silver
 │   ├── nacha-service/         # NACHA/ACH bank payments
 │   └── docker-compose.yml
+├── k8s/                       # Kubernetes manifests (production)
+│   ├── namespace/             # kstar namespace
+│   ├── secrets/               # DB passwords, JWT secret
+│   ├── configmaps/            # Per-service configuration
+│   ├── deployments/           # Spring Boot + DB + Kafka
+│   ├── services/              # ClusterIP + LoadBalancer
+│   ├── ingress/               # NGINX Ingress
+│   ├── hpa/                   # Horizontal Pod Autoscaler
+│   └── deploy.sh              # One-command deploy script
 ├── FrontEnd/
 │   └── src/
 │       ├── pages/             # Dashboard, Exchange, Transfer, Bullion, NACHA, Account
@@ -279,6 +290,53 @@ npm start
 ```
 
 App runs on: **http://localhost:3000**
+
+---
+
+## ☸️ Kubernetes Deployment (Production)
+
+### Prerequisites
+- Minikube or any Kubernetes cluster
+- kubectl installed
+
+### Deploy (One Command)
+```bash
+cd k8s
+chmod +x deploy.sh
+./deploy.sh
+```
+
+### Manual Step-by-Step
+```bash
+kubectl apply -f k8s/namespace/namespace.yaml
+kubectl apply -f k8s/secrets/secrets.yaml
+kubectl apply -f k8s/configmaps/configmaps.yaml
+kubectl apply -f k8s/deployments/databases.yaml
+kubectl apply -f k8s/deployments/kafka.yaml
+kubectl apply -f k8s/services/services.yaml
+kubectl apply -f k8s/deployments/services.yaml
+kubectl apply -f k8s/ingress/ingress.yaml
+kubectl apply -f k8s/hpa/hpa.yaml
+```
+
+### Check Status
+```bash
+kubectl get all -n kstar
+```
+
+### K8s Architecture
+
+| Resource | Details |
+|---|---|
+| Namespace | `kstar` — isolated environment |
+| Deployments | 6 Spring Boot microservices |
+| StatefulSets | MySQL, MongoDB, Kafka, Zookeeper |
+| PersistentVolumeClaims | MySQL (2Gi), MongoDB (2Gi) |
+| ConfigMaps | Per-service environment config |
+| Secrets | DB passwords, JWT secret |
+| Services | ClusterIP (internal) + LoadBalancer (gateway) |
+| Ingress | NGINX — routes traffic to gateway |
+| HPA | Exchange & Transfer service autoscaling (1–5 pods) |
 
 ---
 

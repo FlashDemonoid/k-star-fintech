@@ -1,0 +1,139 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service
+  namespace: kstar
+spec:
+  selector:
+    app: gateway-service
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: kstar
+spec:
+  selector:
+    app: user-service
+  ports:
+    - port: 8081
+      targetPort: 8081
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: exchange-service
+  namespace: kstar
+spec:
+  selector:
+    app: exchange-service
+  ports:
+    - port: 8082
+      targetPort: 8082
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transfer-service
+  namespace: kstar
+spec:
+  selector:
+    app: transfer-service
+  ports:
+    - port: 8083
+      targetPort: 8083
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bullion-service
+  namespace: kstar
+spec:
+  selector:
+    app: bullion-service
+  ports:
+    - port: 8084
+      targetPort: 8084
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nacha-service
+  namespace: kstar
+spec:
+  selector:
+    app: nacha-service
+  ports:
+    - port: 8085
+      targetPort: 8085
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: kstar
+spec:
+  selector:
+    app: mysql
+  ports:
+    - port: 3306
+      targetPort: 3306
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+  namespace: kstar
+spec:
+  selector:
+    app: mongodb
+  ports:
+    - port: 27017
+      targetPort: 27017
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper
+  namespace: kstar
+spec:
+  selector:
+    app: zookeeper
+  ports:
+    - port: 2181
+      targetPort: 2181
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  namespace: kstar
+spec:
+  selector:
+    app: kafka
+  ports:
+    - port: 9092
+      targetPort: 9092
+  type: ClusterIP
