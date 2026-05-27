@@ -15,6 +15,7 @@ import java.util.List;
 @Component
 public class AuthFilter extends AbstractGatewayFilterFactory<AuthFilter.Config> {
 
+    // These two don't need a token — everything else does
     private static final List<String> PUBLIC_PATHS = List.of(
             "/api/auth/login",
             "/api/auth/register"
@@ -32,11 +33,7 @@ public class AuthFilter extends AbstractGatewayFilterFactory<AuthFilter.Config> 
         return (exchange, chain) -> {
             String path = exchange.getRequest().getPath().toString();
 
-            // Allow public endpoints without auth
-            boolean isPublic = PUBLIC_PATHS.stream()
-                    .anyMatch(path::startsWith);
-
-            if (isPublic) {
+            if (PUBLIC_PATHS.stream().anyMatch(path::startsWith)) {
                 return chain.filter(exchange);
             }
 
@@ -59,7 +56,7 @@ public class AuthFilter extends AbstractGatewayFilterFactory<AuthFilter.Config> 
             String username = jwtUtil.extractUsername(token);
             log.info("Authenticated user: {} accessing {}", username, path);
 
-            // Forward username in header to downstream services
+            // Pass username downstream so services don't have to re-parse the token
             var mutatedRequest = exchange.getRequest().mutate()
                     .header("X-User-Name", username)
                     .build();

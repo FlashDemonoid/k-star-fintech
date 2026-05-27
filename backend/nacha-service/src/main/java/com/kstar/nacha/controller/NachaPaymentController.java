@@ -20,9 +20,9 @@ public class NachaPaymentController {
     private final NachaPaymentService nachaPaymentService;
 
     /**
-     * Initiate an ACH/NACHA payment.
-     * Supports PPD (consumer), CCD (business), WEB (internet),
-     * TEL (telephone), CTX (corporate trade exchange) SEC codes.
+     * Initiates an ACH payment.
+     * Supported SEC codes: PPD (consumer), CCD (business), WEB (internet), TEL, CTX.
+     * Status starts as PENDING, moves to SUBMITTED after async processing (~2s).
      */
     @PostMapping("/payments")
     public ResponseEntity<NachaPaymentResponse> initiatePayment(
@@ -45,9 +45,9 @@ public class NachaPaymentController {
     }
 
     /**
-     * Return an ACH entry.
-     * RDFI has 2 business days; ODFI has 60 days for unauthorized returns.
-     * Updates the payment status to RETURNED and records the return reason.
+     * Return (reverse) an ACH entry.
+     * In real NACHA: RDFI has 2 business days, ODFI has 60 days for unauthorized returns.
+     * Here it's simplified — any payment can be returned with a return code (e.g. R02).
      */
     @PostMapping("/payments/{paymentId}/return")
     public ResponseEntity<NachaPaymentResponse> returnPayment(

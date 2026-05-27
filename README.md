@@ -1,6 +1,8 @@
-# ⭐ K Star Fintech
+# K Star Fintech
 
-> A production-ready **Microservices Fintech Platform** featuring multi-currency digital wallets, real-time currency exchange, UPI P2P transfers via Kafka, NACHA/ACH bank payments, and Digital Gold & Silver trading — built with **Java 17, Spring Boot 3.1, React 18, Apache Kafka, MySQL & MongoDB**.
+A personal fintech project I built to go beyond the usual CRUD demos. It covers real-world payment concepts — UPI transfers, NACHA/ACH batch payments, multi-currency wallets, and digital gold/silver trading — all wired through Kafka and split across microservices.
+
+Built with Java 17, Spring Boot 3.1, React 18, Kafka, MySQL and MongoDB.
 
 ![Java](https://img.shields.io/badge/Java-17-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.1.5-brightgreen)
@@ -9,132 +11,128 @@
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)
 ![MongoDB](https://img.shields.io/badge/MongoDB-6.0-green)
 ![Docker](https://img.shields.io/badge/Docker-Compose-blue)
-![Kubernetes](https://img.shields.io/badge/Kubernetes-K8s-326CE5?logo=kubernetes&logoColor=white)
 
 ---
 
-## ✨ Features
+## What it does
 
-| # | Feature | Service | Tech |
-|---|---------|---------|------|
-| 1 | JWT Register & Login | user-service | Spring Security + BCrypt |
-| 2 | Multi-Currency Wallets (INR/USD/EUR/GBP/JPY) | user-service | JPA + MySQL |
-| 3 | Real-Time Currency Exchange | exchange-service | open.er-api.com |
-| 4 | UPI P2P Transfer via Kafka | transfer-service | Kafka Events |
-| 5 | NACHA / ACH Bank Payments | nacha-service | PPD/CCD/WEB SEC Codes |
-| 6 | Digital Gold & Silver Trading | bullion-service | Live MCX Prices |
-| 7 | Dashboard with Live Charts | Frontend | Recharts |
-| 8 | Add Money (UPI / Bank / Card) | user-service | Wallet Adjust API |
-
----
-
-## 🛠 Tech Stack
-
-| Layer | Technology | Version | Purpose |
-|---|---|---|---|
-| Language | Java | 17 | Core backend |
-| Framework | Spring Boot | 3.1.5 | Microservices framework |
-| API Gateway | Spring Cloud Gateway | 4.0.x | Routing + JWT Filter |
-| ORM | Spring Data JPA + Hibernate | 3.1.5 | MySQL ORM |
-| NoSQL | Spring Data MongoDB | 3.1.5 | Exchange rates + Bullion Holdings |
-| Messaging | Apache Kafka | 7.4.0 | Event streaming |
-| Security | Spring Security + jjwt | 0.11.5 | JWT Authentication |
-| Frontend | React | 18 | UI |
-| UI Library | Material UI | 5.x | Component library |
-| Charts | Recharts | 2.x | Data visualization |
-| HTTP Client | Axios | 1.x | API calls |
-| Database | MySQL | 8.0 | Relational data |
-| Database | MongoDB | 6.0 | Document data |
-| DevOps | Docker + Compose | Latest | Local containerization |
-| DevOps | Kubernetes | 1.28+ | Production orchestration |
-| Build Tool | Maven | 3.x | Java build |
+| Feature | Service | How |
+|---------|---------|-----|
+| JWT Register & Login | user-service | Spring Security + BCrypt |
+| Multi-Currency Wallets (INR/USD/EUR/GBP/JPY) | user-service | JPA + MySQL |
+| Real-Time Currency Exchange | exchange-service | open.er-api.com + live rate fluctuation |
+| UPI P2P Transfer | transfer-service | Kafka events + PIN validation |
+| NACHA / ACH Bank Payments | nacha-service | PPD/CCD/WEB SEC codes, T+1 settlement |
+| Digital Gold & Silver Trading | bullion-service | Live MCX prices, MongoDB holdings |
+| Dashboard with Live Charts | Frontend | Recharts |
+| Add Money (UPI / Bank / Card) | user-service | Wallet adjust API |
 
 ---
 
-## 📁 Project Structure
+## Tech Stack
+
+| Layer | Technology | Version | Why I used it |
+|-------|-----------|---------|---------------|
+| Language | Java | 17 | Records, sealed classes, text blocks |
+| Framework | Spring Boot | 3.1.5 | Fast microservice setup |
+| API Gateway | Spring Cloud Gateway | 4.0.x | Central JWT filter, routing |
+| ORM | Spring Data JPA + Hibernate | 3.1.5 | MySQL persistence |
+| NoSQL | Spring Data MongoDB | 3.1.5 | Exchange rates + bullion (schema-less fits well) |
+| Messaging | Apache Kafka | 7.4.0 | Decoupled transfer and notification events |
+| Security | Spring Security + jjwt | 0.11.5 | Stateless JWT auth |
+| Frontend | React | 18 | Component-based UI |
+| UI Library | Material UI | 5.x | Consistent look |
+| Charts | Recharts | 2.x | Balance history, portfolio breakdown |
+| HTTP Client | Axios | 1.x | API calls from React |
+| Database | MySQL | 8.0 | Users, wallets, transactions |
+| Database | MongoDB | 6.0 | Exchange rates, bullion holdings |
+| Infra | Docker + Compose | Latest | One-command local setup |
+| Build | Maven | 3.x | Multi-module project structure |
+
+---
+
+## Project Structure
 
 ```
 kstar_final/
 ├── backend/
-│   ├── gateway-service/       # API Gateway — JWT filter, routing
-│   ├── user-service/          # Auth, wallets, UPI
-│   ├── exchange-service/      # Live currency exchange
-│   ├── transfer-service/      # UPI P2P transfers (Kafka)
-│   ├── bullion-service/           # Digital Gold & Silver
+│   ├── gateway-service/       # JWT filter + routing — start this last
+│   ├── user-service/          # Auth, wallets, UPI validation
+│   ├── exchange-service/      # Currency conversion, live rates
+│   ├── transfer-service/      # UPI P2P via Kafka
+│   ├── bullion-service/       # Digital gold & silver
 │   ├── nacha-service/         # NACHA/ACH bank payments
 │   └── docker-compose.yml
-├── k8s/                       # Kubernetes manifests (production)
-│   ├── namespace/             # kstar namespace
-│   ├── secrets/               # DB passwords, JWT secret
-│   ├── configmaps/            # Per-service configuration
-│   ├── deployments/           # Spring Boot + DB + Kafka
-│   ├── services/              # ClusterIP + LoadBalancer
-│   ├── ingress/               # NGINX Ingress
-│   ├── hpa/                   # Horizontal Pod Autoscaler
-│   └── deploy.sh              # One-command deploy script
 ├── FrontEnd/
 │   └── src/
 │       ├── pages/             # Dashboard, Exchange, Transfer, Bullion, NACHA, Account
 │       ├── components/        # Layout, Sidebar
 │       ├── context/           # Auth context
 │       └── api/               # Axios config
-├── docs/                      # PDF documentation (6 topics)
+├── README/                    # More detailed guides per topic
 ├── scripts/                   # start.sh, stop.sh, reset.sh, logs.sh
-├── README/                    # Detailed guides
-├── fix-and-run.sh             # One-command setup
+├── fix-and-run.sh             # Does everything automatically
 └── README.md
 ```
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
-### Prerequisites
-- Docker Desktop (running)
-- Node.js 18+
+**Requirements:** Docker Desktop (running), Node.js 18+
 
-### 1. Clone / Extract
+### Option A — One command (easiest)
+
 ```bash
-cd ~/Downloads
-unzip kstar_final_complete.zip
 cd kstar_final
-```
-
-### 2. Run (One Command)
-```bash
 chmod +x fix-and-run.sh
 bash fix-and-run.sh
 ```
 
-### 3. Database Setup
+This stops local MySQL (port conflict), rebuilds all services, waits for them to be ready, and starts the frontend. Takes about 3-4 minutes on first run.
 
-#### 🐳 Docker Setup (Recommended — Zero Manual Work)
+### Option B — Manual Docker
 
-When you run `bash fix-and-run.sh`, Docker Compose automatically creates and initialises all databases. No SQL scripts needed — Hibernate creates the tables on first boot.
+```bash
+# Kill local MySQL first — Docker needs port 3306
+sudo systemctl stop mysql
+
+cd backend
+docker compose down
+docker compose build --no-cache user-service gateway-service transfer-service
+docker compose up -d
+
+# user-service takes ~2 min to start (Hibernate + Kafka init)
+until docker logs backend-user-service-1 2>&1 | grep -q "Started"; do sleep 5; done
+
+# Frontend — new terminal
+cd ../FrontEnd
+npm install
+npm start
+```
+
+App runs at **http://localhost:3000**
 
 ---
 
-#### 🖥️ New System / Local MySQL Setup (Without Docker)
+## Database Setup
 
-If you are running the services locally (not via Docker), you must create the databases and tables manually.
+### Docker (recommended)
 
-**Step 1 — Create the MySQL database**
+Nothing to do. Hibernate auto-creates all MySQL tables on first boot. MongoDB creates collections on first insert. Just run Docker Compose and you're done.
+
+### Local MySQL (without Docker)
+
+If you're running services directly with `mvn spring-boot:run`, create the databases manually first:
 
 ```bash
 mysql -u root -p
 ```
 
 ```sql
--- Create the shared database used by all MySQL-backed services
-CREATE DATABASE IF NOT EXISTS kstar
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-
+CREATE DATABASE IF NOT EXISTS kstar CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE kstar;
 
--- -------------------------------------------------------
--- TABLE: users  (user-service)
--- -------------------------------------------------------
 CREATE TABLE IF NOT EXISTS users (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
     username    VARCHAR(50)  NOT NULL UNIQUE,
@@ -145,11 +143,6 @@ CREATE TABLE IF NOT EXISTS users (
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- -------------------------------------------------------
--- TABLE: wallets  (user-service)
--- Stores currency wallets (INR, USD, EUR, GBP, JPY) and
--- bullion wallets (GOLD, SILVER) for each user.
--- -------------------------------------------------------
 CREATE TABLE IF NOT EXISTS wallets (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id     BIGINT         NOT NULL,
@@ -161,10 +154,6 @@ CREATE TABLE IF NOT EXISTS wallets (
     CONSTRAINT uq_user_currency UNIQUE (user_id, currency)
 );
 
--- -------------------------------------------------------
--- TABLE: transactions  (transfer-service)
--- UPI P2P transfers processed via Kafka.
--- -------------------------------------------------------
 CREATE TABLE IF NOT EXISTS transactions (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     transaction_id  VARCHAR(50)   NOT NULL UNIQUE,
@@ -179,10 +168,6 @@ CREATE TABLE IF NOT EXISTS transactions (
     processed_at    DATETIME
 );
 
--- -------------------------------------------------------
--- TABLE: nacha_payments  (nacha-service)
--- ACH / NACHA bank payments (PPD, CCD, WEB SEC codes).
--- -------------------------------------------------------
 CREATE TABLE IF NOT EXISTS nacha_payments (
     id                        BIGINT AUTO_INCREMENT PRIMARY KEY,
     payment_id                VARCHAR(50)   NOT NULL UNIQUE,
@@ -211,241 +196,130 @@ CREATE TABLE IF NOT EXISTS nacha_payments (
 EXIT;
 ```
 
-> **Note:** If `ddl-auto: update` is set in `application.yml` (which it is), Hibernate will auto-create any missing tables on startup — so the above SQL is only needed if you want the schema ready before first launch, or if you want to inspect/verify the structure.
-
----
-
-**Step 2 — MongoDB setup (exchange-service & bullion-service)**
-
-MongoDB creates databases and collections automatically on first insert — no manual setup needed. But if you want to pre-create them:
+For MongoDB — it sets itself up on first insert, but if you want to pre-create:
 
 ```bash
 mongosh
 ```
 
 ```js
-// kstar_exchange — used by exchange-service
 use kstar_exchange
-db.createCollection("exchange_rates")     // live currency rates cache
-db.createCollection("conversion_history") // per-user conversion log
+db.createCollection("exchange_rates")
+db.createCollection("conversion_history")
 
-// kstar_bullion — used by bullion-service
 use kstar_bullion
-db.createCollection("bullion_holdings")              // gold & silver holdings
+db.createCollection("bullion_holdings")
 
 exit
 ```
 
----
-
-**Step 3 — Verify everything**
+**Quick check:**
 
 ```bash
-# MySQL — confirm all 4 tables exist
+# MySQL
 mysql -u root -p kstar -e "SHOW TABLES;"
+# Should show: nacha_payments, transactions, users, wallets
 
-# Expected output:
-# +------------------+
-# | Tables_in_kstar  |
-# +------------------+
-# | nacha_payments   |
-# | transactions     |
-# | users            |
-# | wallets          |
-# +------------------+
-
-# MongoDB — confirm collections
+# MongoDB
 mongosh --eval "use kstar_exchange; db.getCollectionNames()"
-mongosh --eval "use kstar_bullion; db.getCollectionNames()"
 ```
 
 ---
 
-**Summary — What gets created where**
+## Service Ports
 
-| Database | Type | Tables / Collections | Auto-created? |
-|---|---|---|---|
-| `kstar` | MySQL | `users`, `wallets`, `transactions`, `nacha_payments` | ✅ Yes (Hibernate `ddl-auto: update`) |
-| `kstar_exchange` | MongoDB | `exchange_rates`, `conversion_history` | ✅ Yes (on first insert) |
-| `kstar_bullion` | MongoDB | `bullion_holdings` | ✅ Yes (on first insert) |
-
-### 4. Manual Run
-```bash
-# Stop local MySQL (port conflict)
-sudo systemctl stop mysql
-
-# Start backend
-cd backend
-docker compose down
-docker compose build --no-cache user-service gateway-service transfer-service
-docker compose up -d
-
-# Wait for user-service (~2 minutes)
-until docker logs backend-user-service-1 2>&1 | grep -q "Started"; do sleep 5; done
-
-# Start frontend (new terminal)
-cd ../FrontEnd
-npm install
-npm start
-```
-
-App runs on: **http://localhost:3000**
+| Service | Port |
+|---------|------|
+| Frontend (React) | 3000 |
+| API Gateway | 8080 |
+| User Service | 8081 |
+| Exchange Service | 8082 |
+| Transfer Service | 8083 |
+| Bullion Service | 8084 |
+| NACHA Service | 8085 |
+| MySQL | 3306 |
+| MongoDB | 27017 |
+| Kafka | 9092 |
 
 ---
 
-## ☸️ Kubernetes Deployment (Production)
+## API Endpoints
 
-### Prerequisites
-- Minikube or any Kubernetes cluster
-- kubectl installed
-
-### Deploy (One Command)
-```bash
-cd k8s
-chmod +x deploy.sh
-./deploy.sh
+### Auth (no token needed)
 ```
-
-### Manual Step-by-Step
-```bash
-kubectl apply -f k8s/namespace/namespace.yaml
-kubectl apply -f k8s/secrets/secrets.yaml
-kubectl apply -f k8s/configmaps/configmaps.yaml
-kubectl apply -f k8s/deployments/databases.yaml
-kubectl apply -f k8s/deployments/kafka.yaml
-kubectl apply -f k8s/services/services.yaml
-kubectl apply -f k8s/deployments/services.yaml
-kubectl apply -f k8s/ingress/ingress.yaml
-kubectl apply -f k8s/hpa/hpa.yaml
-```
-
-### Check Status
-```bash
-kubectl get all -n kstar
-```
-
-### K8s Architecture
-
-| Resource | Details |
-|---|---|
-| Namespace | `kstar` — isolated environment |
-| Deployments | 6 Spring Boot microservices |
-| StatefulSets | MySQL, MongoDB, Kafka, Zookeeper |
-| PersistentVolumeClaims | MySQL (2Gi), MongoDB (2Gi) |
-| ConfigMaps | Per-service environment config |
-| Secrets | DB passwords, JWT secret |
-| Services | ClusterIP (internal) + LoadBalancer (gateway) |
-| Ingress | NGINX — routes traffic to gateway |
-| HPA | Exchange & Transfer service autoscaling (1–5 pods) |
-
----
-
-## 🌐 Service Ports
-
-| Service | Port | Database |
-|---|---|---|
-| Frontend (React) | 3000 | — |
-| API Gateway | 8080 | — |
-| User Service | 8081 | MySQL |
-| Exchange Service | 8082 | MongoDB |
-| Transfer Service | 8083 | MySQL |
-| Bullion Service | 8084 | MongoDB |
-| NACHA Service | 8085 | MySQL |
-| MySQL | 3306 | — |
-| MongoDB | 27017 | — |
-| Kafka | 9092 | — |
-
----
-
-## 📡 Key API Endpoints
-
-### Auth (Public)
-```bash
 POST /api/auth/register
 POST /api/auth/login
 ```
 
-### Wallets (JWT Required)
-```bash
-GET  /api/users/me                        # Profile + wallets
-GET  /api/users/me/wallets                # All wallets
-POST /api/users/me/wallets/adjust         # Debit/Credit wallet
-POST /api/users/me/wallets?currency=EUR   # Add new wallet
-GET  /api/users/me/upi                    # UPI ID + PIN hint
+### Wallets (Bearer token required)
+```
+GET  /api/users/me
+GET  /api/users/me/wallets
+POST /api/users/me/wallets/adjust     # add/deduct balance
+POST /api/users/me/wallets?currency=EUR
+GET  /api/users/me/upi
 ```
 
 ### Exchange
-```bash
-POST /api/exchange/convert                # Convert currency
-GET  /api/exchange/history                # Conversion history
-GET  /api/exchange/rates                  # Live rates
+```
+POST /api/exchange/convert
+GET  /api/exchange/history
+GET  /api/exchange/rates
 ```
 
 ### Transfer
-```bash
-POST /api/transfer/upi                    # UPI P2P transfer
-GET  /api/transfer/history?upiId=xxx      # Transaction history
+```
+POST /api/transfer/upi
+GET  /api/transfer/history?upiId=xxx
 ```
 
 ### NACHA
-```bash
-POST /api/nacha/payments                  # Initiate ACH payment
-GET  /api/nacha/payments                  # Payment history
+```
+POST /api/nacha/payments
+GET  /api/nacha/payments
 ```
 
 ### Gold/Silver (Bullion)
-```bash
-POST /api/bullion/mint                        # Buy gold/silver
-GET  /api/bullion/my                          # My holdings
+```
+POST /api/bullion/mint
+GET  /api/bullion/my
 ```
 
 ---
 
-## 📐 UPI PIN Formula
+## UPI PIN
 
 ```
 UPI ID  = phone_number@kstar
 UPI PIN = last 4 digits of registered phone
-Example: Phone 9876543210 → PIN = 3210
+
+Example: phone 9876543210 → PIN = 3210
 ```
 
 ---
 
-## 📚 Documentation
+## Troubleshooting
 
-See `docs/` folder for detailed PDF guides:
-- `01_Project_Overview.pdf`
-- `02_Microservices_Architecture.pdf`
-- `03_Kafka_Event_Streaming.pdf`
-- `04_NACHA_ACH_Payments.pdf`
-- `05_Database_Schema_SQL.pdf`
-- `06_Frontend_Architecture.pdf`
-
-See `README/` folder for markdown guides:
-- `01_QUICK_START.md`
-- `02_SQL_DATABASE_GUIDE.md`
-- `03_API_REFERENCE.md`
-- `04_GITHUB_AND_DEPLOYMENT.md`
+| Problem | Fix |
+|---------|-----|
+| Port 3306 in use | `sudo systemctl stop mysql` |
+| Port 8080 in use | `lsof -ti:8080 \| xargs kill` |
+| Services not starting | Wait 2 min — user-service is slow on first boot |
+| Exchange shows 0 balance | Go to My Account → Add Money |
+| UPI transfer fails | PIN = last 4 digits of your phone number |
+| Docker not connecting | Make sure Docker Desktop is open |
 
 ---
 
-## 👤 Author & Creator
+## Author
 
 **Kartikeya Shriwas**
-- 💼 Java Developer | 2.5+ Years | Payment Domain Specialist
-- 📧 kartikeyashriwas19@gmail.com
-- 🔗 GitHub: [github.com/FlashDemonoid](https://github.com/FlashDemonoid)
-- 🔗 LinkedIn: [linkedin.com/in/kartikeya-shriwas-4391a8139](https://linkedin.com/in/kartikeya-shriwas-4391a8139)
+- Java Developer | 3 years backend experience | Payment domain
+- kartikeyashriwas19@gmail.com
+- GitHub: [github.com/FlashDemonoid](https://github.com/FlashDemonoid)
+- LinkedIn: [linkedin.com/in/kartikeya-shriwas-4391a8139](https://linkedin.com/in/kartikeya-shriwas-4391a8139)
 
 ---
 
-## ⚠️ Copyright Notice
-
-```
 © 2026 Kartikeya Shriwas. All Rights Reserved.
-
-This project is the original work of Kartikeya Shriwas.
-Unauthorized copying, reproduction, distribution, or claiming
-ownership of this project — in whole or in part — is strictly
-prohibited without explicit written permission from the author.
-```
+Unauthorized copying, reproduction, or redistribution of this project without written permission is prohibited.

@@ -8,14 +8,17 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * NACHA (National Automated Clearing House Association) Payment Entity.
- * NACHA governs ACH (Automated Clearing House) electronic payments in the USA.
- * ACH is used for direct deposits, bill payments, payroll, etc.
+ * Represents a single ACH/NACHA payment entry.
  *
- * SEC Codes supported:
- * - PPD: Prearranged Payment and Deposit (consumer)
- * - CCD: Corporate Credit or Debit (business)
- * - WEB: Internet-initiated entries
+ * NACHA (National Automated Clearing House Association) sets the rules for ACH
+ * electronic payments in the US — think direct deposits, payroll, bill payments.
+ *
+ * SEC codes tell you what kind of transaction it is:
+ *   PPD — Prearranged Payment and Deposit (personal accounts, most common)
+ *   CCD — Corporate Credit or Debit (business-to-business)
+ *   WEB — Initiated over the internet
+ *
+ * Settlement is T+1 — the ACH network clears next business day.
  */
 @Entity
 @Table(name = "nacha_payments")
@@ -30,24 +33,24 @@ public class NachaPayment {
     private Long id;
 
     @Column(nullable = false, unique = true, length = 50)
-    private String paymentId; // e.g. NACHA-20240101-000001
+    private String paymentId;           // e.g. NACHA-20240101-000001
 
     @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
-    private PaymentType type; // CREDIT or DEBIT
+    private PaymentType type;           // CREDIT or DEBIT
 
     @Column(nullable = false, length = 10)
-    private String secCode; // PPD, CCD, WEB
+    private String secCode;             // PPD, CCD, WEB
 
-    // Originator (sender)
+    // Originator (the one sending the money)
     @Column(nullable = false, length = 100)
     private String originatorName;
     @Column(nullable = false, length = 9)
-    private String originatorRoutingNumber; // 9-digit ABA routing number
+    private String originatorRoutingNumber;   // 9-digit ABA routing number
     @Column(nullable = false, length = 17)
     private String originatorAccountNumber;
 
-    // Receiver (destination)
+    // Receiver (destination bank account)
     @Column(nullable = false, length = 100)
     private String receiverName;
     @Column(nullable = false, length = 9)
@@ -55,31 +58,31 @@ public class NachaPayment {
     @Column(nullable = false, length = 17)
     private String receiverAccountNumber;
     @Column(nullable = false, length = 10)
-    private String accountType; // CHECKING or SAVINGS
+    private String accountType;               // CHECKING or SAVINGS
 
     @Column(nullable = false, precision = 18, scale = 2)
-    private BigDecimal amount; // in USD
+    private BigDecimal amount;                // always USD
 
     @Column(length = 10)
     private String currency = "USD";
 
     @Column(length = 255)
-    private String description; // Individual entry description (max 10 chars in real NACHA)
+    private String description;               // max 10 chars in real NACHA, relaxed here for readability
 
     @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 
-    private String traceNumber; // 15-digit NACHA trace number
-    private String batchNumber; // NACHA batch control number
-    private String failureReason;
+    private String traceNumber;               // 15-digit NACHA trace number
+    private String batchNumber;
+    private String failureReason;             // populated on RETURNED or FAILED
 
-    private String initiatedBy; // username
+    private String initiatedBy;               // username of the logged-in user
 
     @CreationTimestamp
     private LocalDateTime createdAt;
     private LocalDateTime settledAt;
-    private LocalDateTime effectiveDate; // when ACH clears (typically T+1)
+    private LocalDateTime effectiveDate;      // T+1 — when the ACH entry actually clears
 
     public enum PaymentType { CREDIT, DEBIT }
 

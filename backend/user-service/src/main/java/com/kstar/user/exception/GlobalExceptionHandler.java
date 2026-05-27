@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Validation errors (@Valid failed)
+    // @Valid failed on request body fields
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationErrors(MethodArgumentNotValidException ex) {
         String message = ex.getBindingResult().getFieldErrors().stream()
@@ -27,26 +27,26 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.BAD_REQUEST, message);
     }
 
-    // Username/email already taken
+    // username/email/phone already taken
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
         return error(HttpStatus.CONFLICT, ex.getMessage());
     }
 
-    // Wrong password / user not found
+    // wrong password or username doesn't exist
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Map<String, Object>> handleBadCredentials(BadCredentialsException ex) {
         return error(HttpStatus.UNAUTHORIZED, "Invalid username or password");
     }
 
-    // Runtime errors (user not found, etc.)
+    // user not found, insufficient balance, etc.
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException ex) {
         log.error("Runtime error: {}", ex.getMessage(), ex);
         return error(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 
-    // Catch-all
+    // catch-all safety net
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleAll(Exception ex) {
         log.error("Unexpected error: {}", ex.getMessage(), ex);

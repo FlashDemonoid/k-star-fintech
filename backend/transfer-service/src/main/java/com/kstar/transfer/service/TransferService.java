@@ -31,7 +31,7 @@ public class TransferService {
 
     @Transactional
     public Transaction initiateUpiTransfer(UpiTransferRequest request, String username) {
-        // Validate UPI ID format
+        // Basic sanity checks before hitting user-service
         if (!request.getFromUpiId().endsWith("@kstar"))
             throw new IllegalArgumentException("Your UPI ID must end with @kstar");
         if (!request.getToUpiId().endsWith("@kstar"))
@@ -40,6 +40,8 @@ public class TransferService {
             throw new IllegalArgumentException("Cannot transfer money to yourself");
 
         // Validate PIN via user-service
+        // If user-service is unreachable, fall back to validating PIN locally
+        // (last 4 digits of sender phone from the UPI ID)
         try {
             HttpHeaders hdr = new HttpHeaders();
             hdr.setContentType(MediaType.APPLICATION_JSON);
@@ -55,7 +57,7 @@ public class TransferService {
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (Exception e) {
-            // Fallback: validate PIN as last-4-digits of sender phone
+            // Fallback PIN check — works even when user-service is slow to start
             String senderPhone = request.getFromUpiId().replace("@kstar", "");
             String expectedPin = senderPhone.length() >= 4
                     ? senderPhone.substring(senderPhone.length() - 4) : senderPhone;
@@ -64,7 +66,7 @@ public class TransferService {
             }
         }
 
-        // Debit sender wallet via adjust-by-upi endpoint
+        // Debit sender, then credit receiver — order matters here
         try {
             HttpHeaders hdr = new HttpHeaders();
             hdr.setContentType(MediaType.APPLICATION_JSON);
@@ -77,7 +79,6 @@ public class TransferService {
                     userServiceUrl + "/api/users/wallet/adjust-by-upi",
                     new HttpEntity<>(debitBody, hdr), Map.class);
 
-            // Credit receiver wallet
             Map<String,Object> creditBody = new HashMap<>();
             creditBody.put("upiId",    request.getToUpiId());
             creditBody.put("currency", "INR");
@@ -86,13 +87,12 @@ public class TransferService {
                     userServiceUrl + "/api/users/wallet/adjust-by-upi",
                     new HttpEntity<>(creditBody, hdr), Map.class);
 
-            log.info("Wallet updated: {} → {} ₹{}", request.getFromUpiId(), request.getToUpiId(), request.getAmount());
+            log.info("Wallets updated: {} → {} ₹{}", request.getFromUpiId(), request.getToUpiId(), request.getAmount());
         } catch (Exception e) {
             log.error("Wallet adjustment failed: {}", e.getMessage());
             throw new RuntimeException("Transfer failed: " + e.getMessage());
         }
 
-        // Save transaction record
         String txnId = "TXN-" + UUID.randomUUID().toString().substring(0, 12).toUpperCase();
         Transaction txn = Transaction.builder()
                 .transactionId(txnId)
@@ -108,12 +108,12 @@ public class TransferService {
                 .build();
         Transaction saved = transactionRepository.save(txn);
 
-        // Publish Kafka event (non-blocking)
+        // Kafka event for notification consumer — non-blocking, failure is fine
         try {
             kafkaTemplate.send("transfer-events", txnId,
                     new TransferEvent(txnId, request.getFromUpiId(), request.getToUpiId(),
                             request.getAmount(), "INR", "COMPLETED", LocalDateTime.now()));
-        } catch (Exception e) { log.debug("Kafka skipped"); }
+        } catch (Exception e) { log.debug("Kafka publish skipped: {}", e.getMessage()); }
 
         log.info("Transfer COMPLETED: {} → {} ₹{}", request.getFromUpiId(), request.getToUpiId(), request.getAmount());
         return saved;

@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,9 +25,9 @@ public class SecurityConfig {
     }
 
     /**
-     * Dummy UserDetailsService — suppresses Spring Boot's
-     * "Using generated security password" warning.
-     * Real auth is JWT-based (stateless), not form login.
+     * Empty in-memory manager just to stop Spring from printing
+     * "Using generated security password: ..." on every startup.
+     * Auth here is JWT — sessions and form login aren't used.
      */
     @Bean
     public UserDetailsService userDetailsService() {

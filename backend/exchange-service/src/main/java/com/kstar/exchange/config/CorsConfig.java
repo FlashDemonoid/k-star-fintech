@@ -5,8 +5,10 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * CORS config — no Spring Security needed.
- * Gateway handles JWT auth; this service trusts X-User-Name header.
+ * CORS is handled here via WebMvcConfigurer rather than Spring Security,
+ * because exchange-service doesn't use Spring Security at all —
+ * auth is taken care of by the gateway.
+ * Services just trust the X-User-Name header that the gateway passes down.
  */
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {

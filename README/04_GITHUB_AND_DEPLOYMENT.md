@@ -1,49 +1,38 @@
-# 🚀 GitHub & Deployment Guide — K Star Fintech
+# GitHub & Deployment Guide — K Star Fintech
 
 ---
 
-## 📁 Adding to GitHub
+## Pushing to GitHub
 
-### Step 1 — Initialize Git
 ```bash
 cd kstar_final
 git init
 git add .
-git commit -m "feat: Initial K Star Fintech microservices project"
+git commit -m "feat: initial K Star Fintech microservices project"
 ```
 
-### Step 2 — Create GitHub Repository
-1. Go to https://github.com/new
-2. Repository name: `kstar-fintech`
-3. Keep **Private** (recommended for fintech projects)
-4. Do NOT add README/gitignore (already exist)
-5. Click **Create repository**
+Create a repo at https://github.com/new — name it `kstar-fintech`, keep it private (it's a fintech project), and don't let GitHub add a README since one already exists.
 
-### Step 3 — Push to GitHub
 ```bash
 git remote add origin https://github.com/FlashDemonoid/kstar-fintech.git
 git branch -M main
 git push -u origin main
 ```
 
-### Step 4 — Verify on GitHub
-Your repo will show all folders:
+After push, your repo will have:
 ```
 kstar-fintech/
-├── backend/         ← All Spring Boot services
-├── FrontEnd/        ← React app
-├── docs/            ← PDF documentation
-├── scripts/         ← start/stop/reset scripts
-├── README/          ← All markdown guides
-├── .gitignore       ← Ignores node_modules, target/, etc.
-└── README.md        ← Main project README
+├── backend/     ← all Spring Boot services
+├── FrontEnd/    ← React app
+├── docs/        ← PDF guides
+├── scripts/     ← start/stop/reset helpers
+├── README/      ← detailed markdown guides
+├── .gitignore
+└── README.md
 ```
 
----
+## Running from a clone
 
-## 🔄 Running From GitHub (Clone & Run)
-
-Anyone who clones your repo can run it:
 ```bash
 git clone https://github.com/YOUR_USERNAME/kstar-fintech.git
 cd kstar-fintech
@@ -53,70 +42,65 @@ chmod +x scripts/start.sh
 
 ---
 
-## ☁️ Do You Need AWS or Azure to Run From GitHub?
+## Do you need AWS/Azure?
 
-**Short answer: NO — for development/testing.**  
-**YES — for production deployment.**
+For running locally or demoing on a call — no. For a live public URL or 24/7 uptime — yes.
 
-| Scenario | Cloud Needed? |
-|---|---|
-| Run on your laptop locally | ❌ No |
-| Share with team (they clone & run) | ❌ No |
-| Share a live URL (e.g. kstar.com) | ✅ Yes |
-| 24/7 availability without your laptop running | ✅ Yes |
-| Handle real users / production traffic | ✅ Yes |
+| Scenario | Cloud needed? |
+|----------|---------------|
+| Run on your laptop | No |
+| Team member clones and runs it | No |
+| Live URL (e.g. kstar.com) | Yes |
+| Always-on without your laptop running | Yes |
+| Real users, production traffic | Yes |
 
 ---
 
-## 🟦 Option A — Deploy on AWS (Recommended for Production)
+## Option A — AWS (Production)
 
-### Architecture on AWS
+### Architecture
 ```
 Internet
     │
-    ▼
 [Route 53] → DNS
     │
-    ▼
-[Application Load Balancer] → SSL termination (HTTPS)
+[Application Load Balancer] → HTTPS
     │
-    ├── [EC2 or ECS] → gateway-service  (port 8080)
-    ├── [EC2 or ECS] → user-service      (port 8081)
-    ├── [EC2 or ECS] → exchange-service  (port 8082)
-    ├── [EC2 or ECS] → transfer-service  (port 8083)
-    ├── [EC2 or ECS] → bullion-service       (port 8084)
-    ├── [EC2 or ECS] → nacha-service     (port 8085)
+    ├── [ECS/EC2] → gateway-service  :8080
+    ├── [ECS/EC2] → user-service      :8081
+    ├── [ECS/EC2] → exchange-service  :8082
+    ├── [ECS/EC2] → transfer-service  :8083
+    ├── [ECS/EC2] → bullion-service   :8084
+    ├── [ECS/EC2] → nacha-service     :8085
     │
-    ├── [RDS MySQL 8.0]     → DB for user/transfer/nacha
-    ├── [DocumentDB/Atlas]  → MongoDB for exchange/bullion
-    └── [Amazon MSK]        → Managed Kafka
+    ├── [RDS MySQL 8.0]
+    ├── [DocumentDB / MongoDB Atlas]
+    └── [Amazon MSK (Kafka)]
 
-[S3 + CloudFront] → React Frontend (static hosting)
+[S3 + CloudFront] → React frontend
 ```
 
-### Quickest AWS Deploy (ECS + Fargate)
+### Deploy with ECS + Fargate
+
 ```bash
-# 1. Install AWS CLI + configure
+# Configure AWS CLI
 aws configure
 
-# 2. Build and push Docker images to ECR
+# Create ECR repo and push each service image
 aws ecr create-repository --repository-name kstar/gateway-service
 docker build -t kstar/gateway-service ./backend/gateway-service
 docker tag kstar/gateway-service:latest <ECR_URI>:latest
 docker push <ECR_URI>:latest
 # Repeat for each service
 
-# 3. Create ECS cluster + task definitions + services
-# (Use AWS Console or Terraform — see below)
-
-# 4. Deploy frontend to S3
-cd FrontEnd
-npm run build
+# Deploy frontend
+cd FrontEnd && npm run build
 aws s3 sync build/ s3://your-kstar-bucket --acl public-read
 aws cloudfront create-invalidation --distribution-id YOUR_ID --paths "/*"
 ```
 
-### Environment Variables for AWS (set in ECS Task Definitions)
+### Environment variables (ECS Task Definitions)
+
 ```bash
 # gateway-service
 JWT_SECRET=your-production-secret-min-32-chars
@@ -128,49 +112,47 @@ SPRING_DATASOURCE_USERNAME=admin
 SPRING_DATASOURCE_PASSWORD=your-secure-password
 SPRING_KAFKA_BOOTSTRAP_SERVERS=your-msk-endpoint:9092
 
-# Frontend (.env.production)
+# Frontend
 REACT_APP_API_URL=https://api.yourdomain.com/api
 ```
 
 ---
 
-## 🔷 Option B — Deploy on Azure
+## Option B — Azure
 
-### Architecture on Azure
+### Architecture
 ```
-[Azure DNS] → yourdomain.com
+[Azure DNS]
     │
 [Azure Application Gateway] → Load balancer + WAF
     │
-[Azure Container Apps / AKS] → All 6 Spring Boot services
+[Azure Container Apps / AKS]
     │
-├── [Azure Database for MySQL] → Relational data
-├── [Azure Cosmos DB (MongoDB API)] → Document data
-└── [Azure Event Hubs (Kafka API)] → Event streaming
+    ├── [Azure Database for MySQL]
+    ├── [Azure Cosmos DB (MongoDB API)]
+    └── [Azure Event Hubs (Kafka API)]
 
-[Azure Static Web Apps] → React Frontend
+[Azure Static Web Apps] → React frontend
 ```
 
 ### Deploy with Azure Container Apps
-```bash
-# 1. Install Azure CLI
-az login
 
-# 2. Create resource group
+```bash
+az login
 az group create --name kstar-rg --location eastus
 
-# 3. Create container registry
+# Container registry
 az acr create --resource-group kstar-rg --name kstarregistry --sku Basic
 az acr login --name kstarregistry
 
-# 4. Build & push images
+# Push an image
 docker build -t kstarregistry.azurecr.io/gateway-service ./backend/gateway-service
 docker push kstarregistry.azurecr.io/gateway-service
 
-# 5. Create Container Apps environment
+# Create Container Apps environment
 az containerapp env create --name kstar-env --resource-group kstar-rg --location eastus
 
-# 6. Deploy each service
+# Deploy a service
 az containerapp create \
   --name gateway-service \
   --resource-group kstar-rg \
@@ -179,93 +161,69 @@ az containerapp create \
   --target-port 8080 \
   --ingress external
 
-# 7. Deploy frontend
+# Deploy frontend
 az staticwebapp create --name kstar-frontend --resource-group kstar-rg \
   --source ./FrontEnd --branch main --app-location "/" --output-location "build"
 ```
 
 ---
 
-## 💸 Cost Estimates
+## Cost estimates
 
-### AWS (Minimum Production Setup)
-| Service | Cost/Month |
-|---|---|
+### AWS (minimum production)
+
+| Service | Monthly |
+|---------|---------|
 | ECS Fargate (6 services, small) | ~$40–80 |
 | RDS MySQL (db.t3.micro) | ~$15 |
-| DocumentDB / MongoDB Atlas | ~$10–50 |
-| Amazon MSK (kafka, smallest) | ~$150 |
+| MongoDB Atlas / DocumentDB | ~$10–50 |
+| Amazon MSK (smallest Kafka) | ~$150 |
 | CloudFront + S3 | ~$2 |
-| **Total** | **~$217–297/month** |
+| **Total** | **~$217–297** |
 
-> 💡 **Cheaper alternative:** Use EC2 t3.medium ($30/mo) + docker-compose instead of managed services
+Cheaper alternative: one EC2 t3.medium (~$30/mo) with Docker Compose instead of managed services.
 
 ### Azure
-| Service | Cost/Month |
-|---|---|
+
+| Service | Monthly |
+|---------|---------|
 | Container Apps (6 services) | ~$30–60 |
 | Azure Database for MySQL | ~$25 |
 | Cosmos DB | ~$25 |
 | Event Hubs (Kafka) | ~$10 |
 | Static Web Apps | Free |
-| **Total** | **~$90–120/month** |
+| **Total** | **~$90–120** |
 
 ---
 
-## 🆓 Free Alternatives for Portfolio / Demo
+## Free options (for portfolio / demos)
 
-| Platform | What it Hosts | Free Tier |
-|---|---|---|
-| **Railway.app** | Backend services + MySQL + MongoDB | $5 credit/month |
-| **Render.com** | Backend services | 750 hrs/month free |
-| **Vercel** | React Frontend | Free forever |
-| **MongoDB Atlas** | MongoDB | 512MB free cluster |
-| **Clever Cloud** | MySQL | 256MB free |
-| **Upstash** | Kafka | 10K messages/day free |
+| Platform | What it hosts | Free tier |
+|----------|--------------|-----------|
+| Railway.app | Backend + MySQL + MongoDB | $5 credit/month |
+| Render.com | Backend services | 750 hrs/month |
+| Vercel | React frontend | Free |
+| MongoDB Atlas | MongoDB | 512MB |
+| Upstash | Kafka | 10K messages/day |
 
-### Recommended Free Stack for Portfolio
-```
-Frontend  → Vercel (free)
-Gateway + Services → Railway.app ($5 credit covers demo)
-MySQL     → Railway MySQL plugin
-MongoDB   → MongoDB Atlas (free 512MB)
-Kafka     → Upstash Kafka (free tier)
-```
+Recommended free portfolio stack: Vercel for frontend, Railway for backend services + MySQL, MongoDB Atlas for MongoDB, Upstash for Kafka. Covers everything with no card required.
 
 ---
 
-## 🔒 Security Checklist Before Deployment
+## Security checklist before going live
 
-- [ ] Change JWT secret to 32+ character random string
-- [ ] Change MySQL root password
-- [ ] Set `spring.jpa.show-sql=false`
-- [ ] Enable HTTPS (SSL certificate via Let's Encrypt or ACM)
-- [ ] Set `REACT_APP_API_URL` to HTTPS URL
-- [ ] Enable Spring Boot Actuator security
-- [ ] Set `spring.h2.console.enabled=false`
-- [ ] Review CORS `allowedOriginPatterns` (restrict to your domain)
-- [ ] Enable rate limiting on gateway
-- [ ] Set up database backups
-
----
-## 👨‍💻 Creator & Author
-
-**Kartikeya Shriwas**
-> 💼 Java Developer | 2.5+ Years | Payment Domain Specialist
-
-> ⚠️ **Copyright Notice:** This project is created and owned by **Kartikeya Shriwas**.
-> Unauthorized copying, distribution, or claiming ownership of this project is strictly prohibited.
-> © 2026 Kartikeya Shriwas. All Rights Reserved.
+- [ ] JWT secret changed to 32+ random chars
+- [ ] MySQL root password changed
+- [ ] `spring.jpa.show-sql=false`
+- [ ] HTTPS enabled (Let's Encrypt or ACM)
+- [ ] `REACT_APP_API_URL` pointing to HTTPS
+- [ ] CORS `allowedOriginPatterns` locked down to your domain
+- [ ] Spring Boot Actuator endpoints secured
+- [ ] Database backups configured
 
 ---
 
-## 👤 Author & Creator
+**Kartikeya Shriwas** — Java Developer | Payment Domain
+kartikeyashriwas19@gmail.com · https://github.com/FlashDemonoid
 
-**Kartikeya Shriwas**
-- 💼 Java Developer | 2.5+ Years | Payment Domain Specialist
-- 📧 kartikeyashriwas19@gmail.com
-- 🔗 GitHub: [github.com/FlashDemonoid](https://github.com/FlashDemonoid)
-- 🔗 LinkedIn: [linkedin.com/in/kartikeya-shriwas-4391a8139](https://linkedin.com/in/kartikeya-shriwas-4391a8139)
-
-> © 2026 Kartikeya Shriwas. All Rights Reserved.
-> This project is original work of Kartikeya Shriwas. Unauthorized copying is prohibited.
+© 2026 Kartikeya Shriwas. All Rights Reserved.

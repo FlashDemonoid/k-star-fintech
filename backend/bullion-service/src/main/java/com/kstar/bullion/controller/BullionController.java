@@ -19,9 +19,7 @@ public class BullionController {
 
     private final BullionService bullionService;
 
-    /**
-     * Mint a new bullion holding (gold or silver).
-     */
+    /** Mint a new digital gold or silver holding. */
     @PostMapping("/mint")
     public ResponseEntity<Bullion> mint(
             @Valid @RequestBody MintRequest request,
@@ -29,17 +27,13 @@ public class BullionController {
         return ResponseEntity.ok(bullionService.mint(request, username));
     }
 
-    /**
-     * Get all bullion items listed for sale in the marketplace.
-     */
+    /** Get all bullion items currently listed for sale in the marketplace. */
     @GetMapping("/marketplace")
     public ResponseEntity<List<Bullion>> getMarketplace() {
         return ResponseEntity.ok(bullionService.getMarketplace());
     }
 
-    /**
-     * Trade / purchase a bullion item from the marketplace.
-     */
+    /** Purchase a specific bullion item from the marketplace by token ID. */
     @PostMapping("/trade/{tokenId}")
     public ResponseEntity<Bullion> trade(
             @PathVariable String tokenId,
@@ -47,9 +41,7 @@ public class BullionController {
         return ResponseEntity.ok(bullionService.trade(tokenId, username));
     }
 
-    /**
-     * Get all bullion holdings of the logged-in user.
-     */
+    /** Get all bullion holdings belonging to the logged-in user. */
     @GetMapping("/my")
     public ResponseEntity<List<Bullion>> getMyHoldings(
             @RequestHeader(value = "X-User-Name", defaultValue = "anonymous") String username) {

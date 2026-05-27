@@ -32,7 +32,11 @@ public class ExchangeService {
 
     private final Random random = new Random();
 
-    // Base rates — updated every 30 seconds
+    /**
+     * Base exchange rates — approximate real-world values as of late 2024.
+     * Each conversion gets a small random fluctuation (±0.1%) to mimic
+     * a live market feed without needing an actual API key.
+     */
     private static final Map<String, Map<String, Double>> BASE_RATES = new HashMap<>();
     static {
         BASE_RATES.put("USD", Map.of("INR",84.12,"EUR",0.92,"GBP",0.79,"JPY",151.4,"USD",1.0));
@@ -43,7 +47,7 @@ public class ExchangeService {
     }
 
     private double fluctuate(double base) {
-        double pct = (random.nextDouble() - 0.5) * 0.002;
+        double pct = (random.nextDouble() - 0.5) * 0.002; // ±0.1% per call
         return Math.round(base * (1 + pct) * 1000000.0) / 1000000.0;
     }
 
@@ -58,10 +62,10 @@ public class ExchangeService {
 
         double baseRate = BASE_RATES.getOrDefault(from, Map.of()).getOrDefault(to, 1.0);
         double liveRate = fluctuate(baseRate);
-        BigDecimal rate = BigDecimal.valueOf(liveRate);
+        BigDecimal rate   = BigDecimal.valueOf(liveRate);
         BigDecimal result = request.getAmount().multiply(rate).setScale(6, RoundingMode.HALF_UP);
 
-        // Save conversion history
+        // Save to conversion history — best-effort, don't fail the request if MongoDB is slow
         try {
             ConversionHistory history = ConversionHistory.builder()
                     .username(username)
@@ -77,7 +81,7 @@ public class ExchangeService {
             log.warn("Could not save conversion history: {}", e.getMessage());
         }
 
-        log.info("Converted {} {} → {} {} @ {} for user {}", request.getAmount(), from, result, to, liveRate, username);
+        log.info("Converted {} {} → {} {} @ {} for {}", request.getAmount(), from, result, to, liveRate, username);
         return new ConvertResponse(from, to, request.getAmount(), result, rate, LocalDateTime.now());
     }
 
@@ -89,7 +93,7 @@ public class ExchangeService {
         return conversionHistoryRepository.findByUsernameOrderByConvertedAtDesc(username);
     }
 
-    // Update rates in MongoDB every 30 seconds
+    /** Refreshes all rates in MongoDB every 30 seconds and fires a Kafka event. */
     @Scheduled(fixedRate = 30000)
     public void updateRates() {
         BASE_RATES.forEach((from, targets) ->
@@ -109,7 +113,6 @@ public class ExchangeService {
                 }
             })
         );
-        // Publish Kafka event (non-blocking)
         try {
             kafkaTemplate.send("rate-updates", new RateUpdateEvent("ALL", LocalDateTime.now()));
         } catch (Exception e) {

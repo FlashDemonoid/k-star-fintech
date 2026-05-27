@@ -64,34 +64,36 @@ public class UserController {
     }
 
     /**
-     * Adjust wallet balance by USERNAME (used by frontend via gateway).
-     * Positive amount = credit, Negative = debit.
+     * Frontend uses this for Add Money, deductions, etc.
+     * Positive amount = credit, negative = debit.
      */
     @PostMapping("/me/wallets/adjust")
     public ResponseEntity<WalletDto> adjustMyWallet(
             @RequestHeader("X-User-Name") String username,
             @RequestBody Map<String, Object> body) {
-        String currency  = (String) body.get("currency");
+        String currency   = (String) body.get("currency");
         BigDecimal amount = new BigDecimal(body.get("amount").toString());
         log.info("Wallet adjust (me): {} {} {}", username, currency, amount);
         return ResponseEntity.ok(userService.adjustWalletBalance(username, currency, amount));
     }
 
     /**
-     * Adjust wallet by UPI ID — used by transfer-service (inter-service).
+     * Internal endpoint — called by transfer-service, not directly from frontend.
+     * Identifies the wallet via UPI ID since that's what transfer-service works with.
      */
     @PostMapping("/wallet/adjust-by-upi")
     public ResponseEntity<WalletDto> adjustByUpi(
             @RequestBody Map<String, Object> body) {
-        String upiId     = (String) body.get("upiId");
-        String currency  = (String) body.get("currency");
+        String upiId      = (String) body.get("upiId");
+        String currency   = (String) body.get("currency");
         BigDecimal amount = new BigDecimal(body.get("amount").toString());
         log.info("Wallet adjust (upi): {} {} {}", upiId, currency, amount);
         return ResponseEntity.ok(userService.adjustWalletByUpiId(upiId, currency, amount));
     }
 
     /**
-     * Validate UPI PIN — used by transfer-service.
+     * Internal endpoint — transfer-service calls this before processing a transfer
+     * to check the UPI PIN.
      */
     @PostMapping("/wallet/validate-upi")
     public ResponseEntity<Map<String,Boolean>> validateUpi(
@@ -102,9 +104,7 @@ public class UserController {
         return ResponseEntity.ok(Map.of("valid", valid));
     }
 
-    /**
-     * Create wallet via /me path — frontend uses this instead of /{id}/wallets.
-     */
+    /** Frontend sometimes uses /me/wallets to create a new wallet instead of /{id}/wallets. */
     @PostMapping("/me/wallets")
     public ResponseEntity<WalletDto> createMyWallet(
             @RequestHeader("X-User-Name") String username,
@@ -112,5 +112,4 @@ public class UserController {
         UserDto user = userService.getUserByUsername(username);
         return ResponseEntity.ok(userService.createWallet(user.getId(), currency));
     }
-
 }

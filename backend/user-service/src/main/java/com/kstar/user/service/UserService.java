@@ -54,7 +54,8 @@ public class UserService {
     }
 
     /**
-     * Adjust wallet by USERNAME — used by frontend direct calls.
+     * Called by the frontend (via gateway) when user clicks "Add Money" or
+     * adjusts their balance. Uses username from the JWT header.
      */
     @Transactional
     public WalletDto adjustWalletBalance(String username, String currency, BigDecimal amount) {
@@ -64,12 +65,12 @@ public class UserService {
     }
 
     /**
-     * Adjust wallet by UPI ID — used by transfer-service (inter-service call).
-     * UPI ID format: phone@kstar → look up wallet directly.
+     * Called by transfer-service over HTTP when processing a UPI transaction.
+     * Looks up the wallet by UPI ID (e.g. 9876543210@kstar) since
+     * transfer-service doesn't deal with usernames directly.
      */
     @Transactional
     public WalletDto adjustWalletByUpiId(String upiId, String currency, BigDecimal amount) {
-        // Find wallet by UPI ID first (only INR wallet has UPI ID)
         Wallet inrWallet = walletRepository.findByUpiId(upiId)
                 .orElseThrow(() -> new RuntimeException("No wallet found for UPI ID: " + upiId));
         User user = inrWallet.getUser();
@@ -78,7 +79,8 @@ public class UserService {
     }
 
     /**
-     * Validate UPI PIN: last 4 digits of phone number.
+     * PIN = last 4 digits of phone number. Simple but good enough for a demo.
+     * In production you'd hash and store this separately.
      */
     public boolean validateUpiPin(String upiId, String pin) {
         Wallet wallet = walletRepository.findByUpiId(upiId)
@@ -92,6 +94,7 @@ public class UserService {
     private WalletDto adjustWalletForUser(User user, String currency, BigDecimal amount) {
         Wallet wallet = walletRepository.findByUserIdAndCurrency(user.getId(), currency.toUpperCase())
                 .orElseGet(() -> {
+                    // Auto-create the wallet if it doesn't exist yet
                     Wallet w = Wallet.builder()
                             .user(user).currency(currency.toUpperCase())
                             .balance(BigDecimal.ZERO).build();
@@ -130,6 +133,10 @@ public class UserService {
                 "phone", user.getPhone(), "username", user.getUsername());
     }
 
+    /**
+     * Converts all wallet balances to INR using rough static rates.
+     * Good enough for dashboard totals — not meant to be precise.
+     */
     public Double getTotalBalance(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
@@ -137,10 +144,10 @@ public class UserService {
                 .mapToDouble(w -> {
                     double bal = w.getBalance().doubleValue();
                     return switch (w.getCurrency()) {
-                        case "USD" -> bal * 84.0;
-                        case "EUR" -> bal * 90.0;
-                        case "GBP" -> bal * 107.0;
-                        case "JPY" -> bal * 0.56;
+                        case "USD"    -> bal * 84.0;
+                        case "EUR"    -> bal * 90.0;
+                        case "GBP"    -> bal * 107.0;
+                        case "JPY"    -> bal * 0.56;
                         case "GOLD"   -> bal * 6250.0;
                         case "SILVER" -> bal * 74.0;
                         default -> bal;

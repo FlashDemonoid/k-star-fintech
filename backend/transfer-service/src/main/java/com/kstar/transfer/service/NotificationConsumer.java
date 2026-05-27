@@ -14,6 +14,6 @@ public class NotificationConsumer {
         log.info("Transfer event received: {} → {} ₹{} [{}]",
                 event.getFromUpiId(), event.getToUpiId(),
                 event.getAmount(), event.getStatus());
-        // Future: send push notification, email, SMS
+        // TODO: hook this into push notifications, email, or SMS later
     }
 }
