@@ -315,7 +315,7 @@ Example: phone 9876543210 → PIN = 3210
 
 **Kartikeya Shriwas**
 - Java Developer | 3 years backend experience | Payment domain
-- kartikeyashriwas19@gmail.com
+- kartikeyashriwas12@gmail.com
 - GitHub: [github.com/FlashDemonoid](https://github.com/FlashDemonoid)
 - LinkedIn: [linkedin.com/in/kartikeya-shriwas-4391a8139](https://linkedin.com/in/kartikeya-shriwas-4391a8139)
 
